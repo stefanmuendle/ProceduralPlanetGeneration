@@ -23,9 +23,9 @@ class_name PlanetNoise
 	get:
 		return noise_map
 
-@export var use_first_layer_as_mask : bool = false :
+@export var use_layer_as_mask : bool = false :
 	set(val): 
-		use_first_layer_as_mask = val
+		use_layer_as_mask = val
 		emit_changed()
 		
 
