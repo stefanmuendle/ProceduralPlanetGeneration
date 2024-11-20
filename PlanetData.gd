@@ -15,33 +15,32 @@ extends Resource
 		resolution = val
 		emit_changed()
 		
-@export var amplitude := 1.0 : 
-	set(val): 
-		amplitude = val
-		emit_changed()
-
-@export var min_height := 0.0 : 
-	set(val): 
-		min_height = val
-		emit_changed()
-		
-
-
-@export var noise_map: FastNoiseLite :
+@export var planet_noise: Array = [] :
 	set(val):
-		if noise_map:  # Disconnect the old resource signal if it exists
-			noise_map.changed.disconnect(_on_resource_changed)
-		noise_map = val
-		if noise_map:  # Connect the new resource signal
-			noise_map.changed.connect(_on_resource_changed)
-	get:
-		return noise_map
-
+		planet_noise = val
+		for n in planet_noise:
+			if n:  # Disconnect the old resource signal if it exists
+				n.changed.disconnect(_on_resource_changed)
+			
+			if n:  # Connect the new resource signal
+				n.changed.connect(_on_resource_changed)
+		
 func _on_resource_changed():
 	emit_changed()
 
 func point_on_planet(point_on_sphere : Vector3) -> Vector3:
-	var elevation = noise_map.get_noise_3dv(point_on_sphere * 100.0)
-	elevation = elevation + 1 / 2.0 * amplitude
-	elevation = max(0.0, elevation - min_height) 	
+	var elevation : float = 0.0
+	var base_elevation : float = 0.0
+	if planet_noise.size() > 0:
+		base_elevation = planet_noise[0].noise_map.get_noise_3dv(point_on_sphere*100.0)
+		base_elevation = base_elevation + 1 / 2.0 * planet_noise[0].amplitude
+		base_elevation = max(0.0, base_elevation - planet_noise[0].min_height) 
+	for n in planet_noise:
+		var mask := 1.0
+		if n.use_first_layer_as_mask:
+			mask = base_elevation
+		var level_elevation = n.noise_map.get_noise_3dv(point_on_sphere * 100.0)
+		level_elevation = level_elevation + 1 / 2.0 * n.amplitude
+		level_elevation = max(0.0, level_elevation - n.min_height) * mask
+		elevation += level_elevation
 	return point_on_sphere * radius * (elevation + 1.0) 
