@@ -34,12 +34,7 @@ var max_height := 0.0
 @export var planet_color : GradientTexture1D :
 	set(val):
 		planet_color = val
-		if planet_color:  # Disconnect the old resource signal if it exists
-			planet_color.changed.disconnect(_on_resource_changed)
-			
-		if planet_color:  # Connect the new resource signal
-			planet_color.changed.connect(_on_resource_changed)
-
+		emit_changed()
 func point_on_planet(point_on_sphere : Vector3) -> Vector3:
 	var elevation : float = 0.0
 	var base_layer_mask : float = 0.0
